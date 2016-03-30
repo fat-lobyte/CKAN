@@ -125,7 +125,6 @@
     <Compile Include="Core\Registry\RegistryMultipleRepos.cs" />
     <Compile Include="Core\Relationships\RelationshipResolver.cs" />
     <Compile Include="Core\Relationships\SanityChecker.cs" />
-    <Compile Include="Core\Types\KSPVersion.cs" />
     <Compile Include="Core\Types\License.cs" />
     <Compile Include="Core\Types\Module.cs" />
     <Compile Include="Core\Types\ModuleInstallDescriptorTests.cs" />
