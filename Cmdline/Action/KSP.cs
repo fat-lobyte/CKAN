@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using CommandLine;
 
 namespace CKAN.CmdLine
@@ -130,14 +131,62 @@ namespace CKAN.CmdLine
 
         private int ListInstalls()
         {
-            User.RaiseMessage("Listing all known KSP installations:");
-            User.RaiseMessage(String.Empty);
+            string preferredGameDir = null;
 
-            int count = 1;
-            foreach (var instance in Manager.Instances)
+            var preferredInstance = Manager.GetPreferredInstance();
+
+            if (preferredInstance != null)
             {
-                User.RaiseMessage("{0}) \"{1}\" - {2}", count, instance.Key, instance.Value.GameDir());
-                count++;
+                preferredGameDir = preferredInstance.GameDir();
+            }
+
+            var output = Manager.Instances
+                .OrderByDescending(i => i.Value.GameDir() == preferredGameDir)
+                .ThenByDescending(i => i.Value.Version())
+                .ThenBy(i => i.Key)
+                .Select(i =>
+                {
+                    var name = i.Key;
+                    var version = i.Value.Version().ToString();
+                    var isDefault = i.Value.GameDir() == preferredGameDir ? "Yes" : "No";
+                    var path = i.Value.GameDir();
+
+                    return Tuple.Create(name, version, isDefault, path);
+                })
+                .ToList();
+
+            const string nameHeader = "Name";
+            const string versionHeader = "Version";
+            const string defaultHeader = "Default";
+            const string pathHeader = "Path";
+
+            var nameWidth = Enumerable.Repeat(nameHeader, 1).Concat(output.Select(i => i.Item1)).Max(i => i.Length);
+            var versionWidth = Enumerable.Repeat(versionHeader, 1).Concat(output.Select(i => i.Item2)).Max(i => i.Length);
+            var defaultWidth = Enumerable.Repeat(defaultHeader, 1).Concat(output.Select(i => i.Item3)).Max(i => i.Length);
+            var pathWidth = Enumerable.Repeat(pathHeader, 1).Concat(output.Select(i => i.Item4)).Max(i => i.Length);
+
+            User.RaiseMessage(string.Format("{0}  {1}  {2}  {3}",
+                nameHeader.PadRight(nameWidth),
+                versionHeader.PadRight(versionWidth),
+                defaultHeader.PadRight(defaultWidth),
+                pathHeader.PadRight(pathWidth)
+            ));
+
+            User.RaiseMessage(string.Format("{0}  {1}  {2}  {3}",
+                new string('-', nameWidth),
+                new string('-', versionWidth),
+                new string('-', defaultWidth),
+                new string('-', pathWidth)
+            ));
+
+            foreach (var line in output)
+            {
+                User.RaiseMessage(string.Format("{0}  {1}  {2}  {3}",
+                   line.Item1.PadRight(nameWidth),
+                   line.Item2.PadRight(versionWidth),
+                   line.Item3.PadRight(defaultWidth),
+                   line.Item4.PadRight(pathWidth)
+               ));
             }
 
             return Exit.OK;
