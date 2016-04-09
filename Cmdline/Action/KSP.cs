@@ -144,14 +144,12 @@ namespace CKAN.CmdLine
                 .OrderByDescending(i => i.Value.GameDir() == preferredGameDir)
                 .ThenByDescending(i => i.Value.Version())
                 .ThenBy(i => i.Key)
-                .Select(i =>
+                .Select(i => new
                 {
-                    var name = i.Key;
-                    var version = i.Value.Version().ToString();
-                    var isDefault = i.Value.GameDir() == preferredGameDir ? "Yes" : "No";
-                    var path = i.Value.GameDir();
-
-                    return Tuple.Create(name, version, isDefault, path);
+                    Name = i.Key,
+                    Version = i.Value.Version().ToString(),
+                    Default = i.Value.GameDir() == preferredGameDir ? "Yes" : "No",
+                    Path = i.Value.GameDir()
                 })
                 .ToList();
 
@@ -160,19 +158,21 @@ namespace CKAN.CmdLine
             const string defaultHeader = "Default";
             const string pathHeader = "Path";
 
-            var nameWidth = Enumerable.Repeat(nameHeader, 1).Concat(output.Select(i => i.Item1)).Max(i => i.Length);
-            var versionWidth = Enumerable.Repeat(versionHeader, 1).Concat(output.Select(i => i.Item2)).Max(i => i.Length);
-            var defaultWidth = Enumerable.Repeat(defaultHeader, 1).Concat(output.Select(i => i.Item3)).Max(i => i.Length);
-            var pathWidth = Enumerable.Repeat(pathHeader, 1).Concat(output.Select(i => i.Item4)).Max(i => i.Length);
+            var nameWidth = Enumerable.Repeat(nameHeader, 1).Concat(output.Select(i => i.Name)).Max(i => i.Length);
+            var versionWidth = Enumerable.Repeat(versionHeader, 1).Concat(output.Select(i => i.Version)).Max(i => i.Length);
+            var defaultWidth = Enumerable.Repeat(defaultHeader, 1).Concat(output.Select(i => i.Default)).Max(i => i.Length);
+            var pathWidth = Enumerable.Repeat(pathHeader, 1).Concat(output.Select(i => i.Path)).Max(i => i.Length);
 
-            User.RaiseMessage(string.Format("{0}  {1}  {2}  {3}",
+            const string columnFormat = "{0}  {1}  {2}  {3}";
+
+            User.RaiseMessage(string.Format(columnFormat,
                 nameHeader.PadRight(nameWidth),
                 versionHeader.PadRight(versionWidth),
                 defaultHeader.PadRight(defaultWidth),
                 pathHeader.PadRight(pathWidth)
             ));
 
-            User.RaiseMessage(string.Format("{0}  {1}  {2}  {3}",
+            User.RaiseMessage(string.Format(columnFormat,
                 new string('-', nameWidth),
                 new string('-', versionWidth),
                 new string('-', defaultWidth),
@@ -181,11 +181,11 @@ namespace CKAN.CmdLine
 
             foreach (var line in output)
             {
-                User.RaiseMessage(string.Format("{0}  {1}  {2}  {3}",
-                   line.Item1.PadRight(nameWidth),
-                   line.Item2.PadRight(versionWidth),
-                   line.Item3.PadRight(defaultWidth),
-                   line.Item4.PadRight(pathWidth)
+                User.RaiseMessage(string.Format(columnFormat,
+                   line.Name.PadRight(nameWidth),
+                   line.Version.PadRight(versionWidth),
+                   line.Default.PadRight(defaultWidth),
+                   line.Path.PadRight(pathWidth)
                ));
             }
 
